@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+
+        <title>Форма обратной связи</title>
+
+        <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+          <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+          <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+    </head>
+    <body>
+        <div class="container">
+            <div class="row"><div class="col-md-12">
+                <div class="clear" style="margin-top: 30px;">
+                    <h1 style="text-align: center;">Форма обратной связи</h1>
+                    <h4 style="text-align: center;">&nbsp;&nbsp;&nbsp;&nbsp;vonslid 2018&nbsp;&nbsp;&nbsp;&nbsp;</h4>
+                </div>
+                <form enctype="multipart/form-data" action="form.php" method="POST">
+                    <div class="form-group" id="nameGroup">
+                        <label for="nameInput">Ваше Имя</label>
+                        <input type="text" class="form-control" id="nameInput" name="name" placeholder="Имя Фамилия" aria-describedby="nameHelp">
+                        <span id="nameHelp" class="help-block" style="display: none;">Слишком короткее имя.</span>
+                    </div>
+                    <div class="form-group" id="emailGroup">
+                        <label for="emailInput">Email</label>
+                        <input type="text" class="form-control" id="emailInput" name="email" placeholder="Email" aria-describedby="emailHelp">
+                        <span id="emailHelp" class="help-block" style="display: none;">Некорректный email.</span>
+                    </div>
+                    <div class="form-group" id="phoneGroup">
+                        <label for="phone">Номер телефона</label>
+                        <input type="text" class="form-control" id="phoneInput" name="phone" placeholder="+7 XXX XXX XX XX" aria-describedby="phoneHelp">
+                        <span id="phoneHelp" class="help-block" style="display: none;">Некорректный телефон.</span>
+                    </div>
+                    <div class="form-group" id="commentGroup">
+                        <label for="commentArea">Текст сообщения</label>
+                        <textarea class="form-control" rows="3" id="commentArea" name="comment" aria-describedby="commentHelp"></textarea>
+                        <span id="commentHelp" class="help-block" style="display: none;">Сообщение не может быть пустым. Максумум 5000 символов.</span>
+                    </div>
+                    <!-- <input type="hidden" name="MAX_FILE_SIZE" value="20000" /> -->
+                    <div class="form-group">
+                        <label for="fileInput">Прикрепит файл</label>
+                        <input type="file" id="fileInput" name="file">
+                        <p class="help-block">Максимум 2 МБ</p>
+                    </div>
+                    <button type="submit" class="btn btn-default">Отправить</button>
+                </form>
+            </div></div>
+            <hr>
+            <div class="row">
+                <div class="col-md12" id="response"></div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+
+$(document).ready(function(){
+
+    $('input#nameInput, input#emailInput, input#phoneInput, textarea#commentArea').off().blur( function(){
+
+        var id = $(this).attr('id');
+        var val = $(this).val();
+
+        switch(id)
+        {
+            case 'nameInput':
+
+                if(val.length <2)
+                {
+                   $('#nameGroup').addClass('has-error');
+                   $('#nameHelp').fadeIn('slow');
+                }
+                else
+                {
+                    $('#nameGroup').removeClass('has-error');
+                    $('#nameHelp').fadeOut('slow');
+                }
+                break;
+
+            case 'emailInput':
+
+                var emailRegExp = /^([a-z0-9_\.\-]{1,20})@([a-z0-9\.\-]{1,20})\.([a-z]{2,4})/i;
+                if(val != '' && emailRegExp.test(val))
+                {
+                    $('#emailGroup').removeClass('has-error');
+                    $('#emailHelp').fadeOut('slow');
+                }
+                else
+                {
+                    $('#emailGroup').addClass('has-error');
+                    $('#emailHelp').fadeIn('slow');
+                }
+                break;
+
+            case 'phoneInput':
+
+                var phoneRegExp = /^(\+7|8)\d{10}$/i;
+                if(val != '' && phoneRegExp.test(val))
+                {
+                    $('#phoneGroup').removeClass('has-error');
+                    $('#phoneHelp').fadeOut('slow');
+                }
+                else
+                {
+                    $('#phoneGroup').addClass('has-error');
+                    $('#phoneHelp').fadeIn('slow');
+                }
+                break;
+
+
+            case 'commentArea':
+                if(val != '' && val.length < 5000)
+                {
+                    $('#commentGroup').removeClass('has-error');
+                    $('#commentHelp').fadeOut('slow');
+                }
+                else
+                {
+                    $('#commentGroup').addClass('has-error');
+                    $('#commentHelp').fadeIn('slow');
+                }
+                break;
+        } 
+    }); 
+
+    $('form').submit(function(e){
+
+        e.preventDefault();
+
+        $('input#nameInput, input#emailInput, input#phoneInput, textarea#commentArea').trigger('blur');
+
+        if($('.has-error').length == 0)
+        {
+            var fd = new FormData(document.querySelector('form'));
+
+            $.ajax({
+                url: 'form.php',
+                type: 'post',
+                data: fd,
+                processData: false,
+                contentType: false,
+
+                beforeSend: function(xhr, textStatus){ 
+                    $('form :input').attr('disabled','disabled');
+                },
+
+                success: function(response){
+                    $('form :input').removeAttr('disabled');
+                    console.log('server responded: ' + response);
+                    $('#response').html(response);
+                },
+
+                error: function(error){
+                    $('form :input').removeAttr('disabled');
+                    console.log(error);
+                    $('#response').html('Произошла ошибка! Детали в консоли.');
+                }
+            });
+        }
+        else
+        {
+            return false;
+        }
+    });
+});
+        </script>
+
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    </body>
+</html>
