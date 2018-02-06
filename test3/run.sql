@@ -106,16 +106,24 @@ INSERT INTO books_authors (author_id, book_id) VALUES
 (6,3),
 (6,8);
 
--- 1. Получаем названия и id для книг жанра "фантастка"
-SELECT books.title, books.id FROM books JOIN books_genres
-ON (books.id = books_genres.book_id)
-WHERE  books_genres.genre_id = 8;
-
--- 1. Водим авторов этих книг
-SELECT authors.first_name, authors.last_name FROM authors JOIN books_authors
-ON (authors.id = books_authors.author_id)
-WHERE books_authors.book_id IN (4,5,6,9)
-GROUP BY authors.id;
+-- 1. Получаем книги жанра "фантастка"
+SELECT
+  b.isbn,
+  b.title,
+  b.pages,
+  b.published,
+  GROUP_CONCAT(DISTINCT CONCAT(a.first_name, " ", a.last_name)) AS `authors`,
+  g.genre -- For MySQL 5.7 and newer use ANY_VALUE(g.genre) or disable sql_mode=only_full_group_by
+  FROM books AS b
+INNER JOIN books_genres AS bg ON bg.book_id = b.id
+INNER JOIN genres AS g ON bg.genre_id = g.id
+INNER JOIN books_authors AS ba ON b.id = ba.book_id
+INNER JOIN `authors` AS a ON ba.author_id = a.id
+WHERE bg.genre_id = (
+  SELECT genres.id FROM genres
+  WHERE genres.genre = "фантастика"
+)
+GROUP BY b.id;
 
 -- 2. Получаем максимальное количество книг для автора
 SELECT MAX(books_count) FROM (
