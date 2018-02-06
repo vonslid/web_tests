@@ -125,12 +125,20 @@ WHERE bg.genre_id = (
 )
 GROUP BY b.id;
 
--- 2. Получаем максимальное количество книг для автора
-SELECT MAX(books_count) FROM (
-	SELECT au_bo_ids.id,COUNT(au_bo_ids.id) AS books_count FROM(
-		SELECT authors.id, books_authors.book_id FROM authors JOIN books_authors
-		ON (authors.id = books_authors.author_id)
-	) AS au_bo_ids
-	GROUP BY au_bo_ids.id
-) AS max_count;
+-- 2. Получаем полное имя автора, написавшего максимальное количество книг
+SELECT
+  CONCAT(`authors`.first_name, " ", `authors`.last_name) AS author_name,
+  bct2.bc AS books_count
+  FROM books_authors
+INNER JOIN (
+  SELECT books_authors.author_id AS ai, COUNT(books_authors.book_id) AS bc FROM books_authors
+  GROUP BY books_authors.author_id
+) AS bct2 ON books_authors.author_id = bct2.ai
+INNER JOIN `authors` ON books_authors.author_id = `authors`.id
+WHERE bct2.bc = (
+  SELECT MAX(bct1.bc) AS bm FROM (
+    SELECT COUNT(books_authors.book_id) AS bc FROM books_authors
+    GROUP BY books_authors.author_id
+  ) AS bct1
+) GROUP BY books_authors.author_id;
 
