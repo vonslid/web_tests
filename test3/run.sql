@@ -119,26 +119,20 @@ INNER JOIN books_genres AS bg ON bg.book_id = b.id
 INNER JOIN genres AS g ON bg.genre_id = g.id
 INNER JOIN books_authors AS ba ON b.id = ba.book_id
 INNER JOIN `authors` AS a ON ba.author_id = a.id
-WHERE bg.genre_id = (
-  SELECT genres.id FROM genres
-  WHERE genres.genre = "фантастика"
-)
+WHERE g.genre = "фантастика"
 GROUP BY b.id;
 
 -- 2. Получаем полное имя автора, написавшего максимальное количество книг
 SELECT
   CONCAT(`authors`.first_name, " ", `authors`.last_name) AS author_name,
-  bct2.bc AS books_count
-  FROM books_authors
-INNER JOIN (
-  SELECT books_authors.author_id AS ai, COUNT(books_authors.book_id) AS bc FROM books_authors
-  GROUP BY books_authors.author_id
-) AS bct2 ON books_authors.author_id = bct2.ai
-INNER JOIN `authors` ON books_authors.author_id = `authors`.id
-WHERE bct2.bc = (
+  COUNT(books_authors.book_id) AS books_count
+  FROM `authors`
+INNER JOIN books_authors ON `authors`.id = books_authors.author_id
+GROUP BY `authors`.id
+HAVING books_count = (
   SELECT MAX(bct1.bc) AS bm FROM (
     SELECT COUNT(books_authors.book_id) AS bc FROM books_authors
     GROUP BY books_authors.author_id
   ) AS bct1
-) GROUP BY books_authors.author_id;
+);
 
